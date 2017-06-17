@@ -20,11 +20,11 @@ fn main() {
 
     let client = Client::new();
 
-    let url = hyper::Url::parse("http://localhost:8000/upload").expect("Could not parse URL");
+    let url = hyper::Url::parse("http://localhost:8100/upload").expect("Could not parse URL");
 
     let mut resp = client
         .request(hyper::method::Method::Post, url)
-        .body("name=test")
+        .body("name=test&user_id=100&camera=Nikon&latitude=40.1&longitude=10.3")
         .header(hyper::header::ContentType::form_url_encoded())
         .send()
         .expect("sending HTTP request failed");
@@ -38,10 +38,12 @@ fn main() {
              resp_json["name"],
              resp_json["id"]);
 
-    let image_url = hyper::Url::parse(&format!("http://localhost:8000/upload/{}", resp_json["id"]))
+    let image_url = hyper::Url::parse(&format!("http://localhost:8100/upload/{}", resp_json["id"]))
         .expect("Could not parse URL");
-    let mut req = hyper::client::request::Request::new(hyper::method::Method::Post, image_url).expect("could not create image request");
-    req.headers_mut().set(hyper::header::ContentLength(buf.len() as u64));
+    let mut req = hyper::client::request::Request::new(hyper::method::Method::Post, image_url)
+        .expect("could not create image request");
+    req.headers_mut()
+        .set(hyper::header::ContentLength(buf.len() as u64));
     let mut str_req = req.start().expect("could not create streaming request");
     str_req.write_all(buf.as_slice());
     str_req.flush().expect("could not flush streaming request");
